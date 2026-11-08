@@ -42,7 +42,8 @@ from datetime import datetime
 import requests
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = "shubhamsborkar/greeksoup"
+# The desk's address on GitHub. A move of the repository changes this one line.
+REPO = "greeksoup/greeksoup-desk"
 CACHE_DIR = os.path.join(HERE, "cache")
 CHECK_PATH = os.path.join(CACHE_DIR, "update_check.json")
 RESULT_PATH = os.path.join(CACHE_DIR, "update_result.json")

@@ -40,7 +40,7 @@ Two honest notes on the free paths. Yahoo's endpoints are unofficial and rate-li
 ## Setup, once (if you would rather do it yourself)
 
 ```
-git clone https://github.com/shubhamsborkar/greeksoup.git
+git clone https://github.com/greeksoup/greeksoup-desk.git
 cd greeksoup
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt

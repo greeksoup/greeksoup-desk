@@ -23,7 +23,10 @@ Write-Host "`n=== Installing into $Dest on door $Port ==="
 $env:GREEKSOUP_HOME = $Dest
 $env:GREEKSOUP_PORT = $Port
 $env:GREEKSOUP_NO_SERVICE = "1"
+$env:GREEKSOUP_YES = "1"        # nobody at the keyboard: no questions
 & (Join-Path $Root "install.ps1")
+if (-not (Test-Path (Join-Path $Dest "MANIFEST.sig"))) { throw "the installer did not put down the signed release" }
+Write-Host "  the installer checked the signature and put the release down"
 
 Write-Host "`n=== Every screen, with no keys at all ==="
 $screens = @("/", "/usdesk", "/book", "/risk", "/watch?list=us", "/watch?list=global", "/funds", "/flow",

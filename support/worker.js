@@ -9,7 +9,7 @@
 //
 // Settings on the Worker (Cloudflare dashboard, Settings, Variables and Secrets):
 //   GITHUB_TOKEN   secret; a fine-grained token with Issues: read and write on the repository
-//   REPO           "shubhamsborkar/greeksoup"
+//   REPO           "greeksoup/greeksoup-desk"
 //   EMAILS         a KV namespace binding, for the private email store
 //
 // Deploy: paste this file into a new Worker named greeksoup-support, add the three settings,

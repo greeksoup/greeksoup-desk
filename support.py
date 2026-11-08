@@ -19,7 +19,8 @@ import requests
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPORTS_PATH = os.path.join(HERE, "data", "reports.json")   # the reader's own: which reports this desk sent
-REPO = "shubhamsborkar/greeksoup"
+# The desk's address on GitHub. A move of the repository changes this one line.
+REPO = "greeksoup/greeksoup-desk"
 SUPPORT_URL = (os.getenv("DESK_SUPPORT_URL") or "").strip() or "https://greeksoup-support.mute-cloud-a367.workers.dev/report"
 REPLY_MAX = 8000       # characters of a reply the desk carries; beyond that the page links to GitHub
 FRESH = 600            # seconds a fetched issue is kept before the desk asks GitHub again

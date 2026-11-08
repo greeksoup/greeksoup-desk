@@ -8,12 +8,12 @@ and never appears on the issue.
 
 Setting it up, once (about fifteen minutes):
 
-1. GitHub: a fine-grained token with **Issues: read and write** on `shubhamsborkar/greeksoup`
+1. GitHub: a fine-grained token with **Issues: read and write** on `greeksoup/greeksoup-desk`
    and nothing else. Copy it.
 2. Cloudflare dashboard: **Workers & Pages**, Create, name it `greeksoup-support`, paste
    `worker.js` over the starter code, Deploy.
 3. In the Worker's **Settings**: under Variables and Secrets add `GITHUB_TOKEN` (secret, the
-   token from step 1) and `REPO` (text, `shubhamsborkar/greeksoup`); under Bindings add a
+   token from step 1) and `REPO` (text, `greeksoup/greeksoup-desk`); under Bindings add a
    **KV namespace** named `EMAILS` (create a new namespace with the same name).
 4. Copy the Worker's address (it ends in `.workers.dev`), add `/report` to it, and put it in
    `support.py` as the default `SUPPORT_URL`. Release. From that version on the Send button

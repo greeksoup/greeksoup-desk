@@ -32,6 +32,9 @@ lines = []
 problems = 0
 looks = 0
 
+# The desk's address on GitHub. A move of the repository changes this one line.
+REPO = "greeksoup/greeksoup-desk"
+
 
 def say(mark, text):
     global problems, looks
@@ -277,7 +280,7 @@ def main():
 
     # the network, small and anonymous
     if not OFFLINE:
-        probes = [("GitHub (the version check)", "https://raw.githubusercontent.com/shubhamsborkar/greeksoup/main/VERSION"),
+        probes = [("GitHub (the version check)", f"https://raw.githubusercontent.com/{REPO}/main/VERSION"),
                   ("SEC EDGAR", "https://www.sec.gov/"),
                   ("Yahoo Finance quotes", "https://query1.finance.yahoo.com/")]
         for label, url in probes:

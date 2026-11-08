@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shubhamsborkar/greeksoup/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/shubhamsborkar/greeksoup/check.yml?branch=main&style=flat-square&label=checks" alt="Checks"></a>
-  <a href="https://greeksoup.ai/docs/project/releases/"><img src="https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fshubhamsborkar%2Fgreeksoup%2Fmain%2FVERSION&search=%5E(%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D%5C.%5Cd%2B)&label=release&style=flat-square&color=ED5A24" alt="Latest release"></a>
+  <a href="https://github.com/greeksoup/greeksoup-desk/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/greeksoup/greeksoup-desk/check.yml?branch=main&style=flat-square&label=checks" alt="Checks"></a>
+  <a href="https://greeksoup.ai/docs/project/releases/"><img src="https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fgreeksoup%2Fgreeksoup-desk%2Fmain%2FVERSION&search=%5E(%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D%5C.%5Cd%2B)&label=release&style=flat-square&color=ED5A24" alt="Latest release"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10 or newer"></a>
   <a href="https://greeksoup.ai/docs/install/"><img src="https://img.shields.io/badge/runs%20on-mac%20%C2%B7%20windows%20%C2%B7%20linux-ECEBE6?style=flat-square&labelColor=0F1114" alt="Runs on Mac, Windows and Linux"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-3ECF8E?style=flat-square" alt="Licence: MIT"></a>
@@ -202,8 +202,8 @@ Setup by hand, the file map, how to adapt the broker adapter, the data sources i
 ## Community
 
 - **Something wrong, and you have no GitHub account**: press **Tell us** in the desk's sidebar. It runs the check, shows you everything it gathered, and sends it with one press, or opens your mail app with it addressed to desk@greeksoup.ai. Nothing leaves your computer until you press. The reply comes back to the same page.
-- **A question, or an idea for the desk**: [Discussions](https://github.com/shubhamsborkar/greeksoup/discussions), in the open, so the answer serves the next reader too. What readers have already hit, dated, with the fix next to it: [Known issues](https://greeksoup.ai/docs/install/known-issues/).
-- **Something wrong, or a broker or market you want**: the [issue chooser](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) has a template for each. `python doctor.py` in the desk folder prints what a report needs and nothing private.
+- **A question, or an idea for the desk**: [Discussions](https://github.com/greeksoup/greeksoup-desk/discussions), in the open, so the answer serves the next reader too. What readers have already hit, dated, with the fix next to it: [Known issues](https://greeksoup.ai/docs/install/known-issues/).
+- **Something wrong, or a broker or market you want**: the [issue chooser](https://github.com/greeksoup/greeksoup-desk/issues/new/choose) has a template for each. `python doctor.py` in the desk folder prints what a report needs and nothing private.
 - **A security problem, or anything you would rather not put on GitHub**: desk@greeksoup.ai. [SECURITY.md](SECURITY.md) says what to put in the subject.
 - **A contribution**: [CONTRIBUTING.md](CONTRIBUTING.md). Most arrive as one file to a written contract, drafted by your own agent; pull requests written with an agent are welcome.
 - **The newsletter**: [Alpha with AI](https://ai.shikshannivesh.com) carries the editions the desk grew out of, and every new screen is written up there first. GreekSoup Desk is made by the team behind [greeksoup.ai](https://greeksoup.ai) and [Shikshan Nivesh](https://shikshannivesh.com).

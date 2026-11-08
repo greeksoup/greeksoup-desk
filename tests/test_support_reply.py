@@ -16,7 +16,7 @@ def _github(body):
     def get(url, **kw):
         if url.endswith("/comments?per_page=1&sort=created&direction=desc"):
             return _Resp([{"user": {"login": "shubhamsborkar"}, "created_at": "2026-09-28T03:55:10Z", "body": body}])
-        return _Resp({"state": "open", "comments": 1, "html_url": "https://github.com/shubhamsborkar/greeksoup/issues/5"})
+        return _Resp({"state": "open", "comments": 1, "html_url": "https://github.com/greeksoup/greeksoup-desk/issues/5"})
     return get
 
 
