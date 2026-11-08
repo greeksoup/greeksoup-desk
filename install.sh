@@ -8,7 +8,9 @@
 # The quick way, the same file run straight from the site:
 #   curl -fsSL https://greeksoup.ai/install.sh | bash
 #
-# What it does, in order. It prints this list and asks before it changes anything.
+# What it does, in order. It prints this list first and waits 10 seconds, so you can stop it
+# (close the window, or press Control-C) before anything changes. It asks you nothing, except your
+# Mac password once if Python has to be installed.
 #   1. Finds Python 3.10 or newer. On a Mac without it, it downloads python.org's installer,
 #      checks the file is the exact one python.org published (its SHA-256 below) and that
 #      Apple's notary vouches for the Python Software Foundation's signature, and only then
@@ -20,16 +22,17 @@
 #      A download that fails the check is refused and nothing is installed.
 #   3. Puts the desk in ~/GreekSoup and installs the Python packages it needs inside that
 #      folder (.venv). Nothing else on the computer changes.
-#   4. Asks whether the desk should start with your computer and restart itself if it stops
-#      (a LaunchAgent on a Mac, a systemd user service on Linux). Say no, or run with
-#      GREEKSOUP_NO_SERVICE=1, and it runs this time only.
+#   4. Sets the desk to start with your computer and restart itself if it stops (a LaunchAgent
+#      on a Mac, a systemd user service on Linux). To skip that, run it as
+#      GREEKSOUP_NO_SERVICE=1 bash install.sh   and it runs this time only. Either way you can
+#      switch it on or off later on the desk's Settings screen.
 #   5. Starts the desk and opens http://localhost:8765 in your browser.
 # Run it again later and it only starts the desk; updates come through the strip inside
 # the desk, checked against the same signature.
 #
 # Knobs (optional, put them before "bash"):
 #   GREEKSOUP_HOME=/some/folder  GREEKSOUP_PORT=8770  GREEKSOUP_NO_SERVICE=1
-#   GREEKSOUP_YES=1   no questions: go ahead, and start with the computer
+#   GREEKSOUP_YES=1   skip the 10-second wait
 set -e
 
 # The desk's address on GitHub. A move of the repository changes this one line.
@@ -55,18 +58,8 @@ OS="$(uname -s)"
 
 say()  { printf '\n  %s\n' "$*"; }
 fail() { printf '\n  %s\n\n' "$*"; exit 1; }
-# A question needs a keyboard. Piped from curl, this script's own input is the script, so the
-# answer is read from the terminal itself; with no terminal (a test machine), the default holds.
-can_ask() { [ -z "$YES" ] && [ -t 1 ] && { : </dev/tty; } 2>/dev/null; }
-ask() {   # ask "question" default(y|n) -> 0 for yes
-  local def="$2" ans=""
-  if can_ask; then
-    if [ "$def" = "y" ]; then printf '\n  %s [Y/n] ' "$1"; else printf '\n  %s [y/N] ' "$1"; fi
-    read -r ans </dev/tty || ans=""
-  fi
-  ans="$(printf '%s' "${ans:-$def}" | tr '[:upper:]' '[:lower:]')"
-  case "$ans" in y|yes) return 0 ;; *) return 1 ;; esac
-}
+# The 10-second wait is for a person reading the window; a test machine with no terminal skips it.
+can_wait() { [ -z "$YES" ] && [ -t 1 ]; }
 
 write_check() {   # the check below, written to a temporary file and run with the Python found above
   cat > "$TMP/check.py" <<'GREEKSOUP_CHECK'
@@ -224,7 +217,7 @@ fi
 FRESH=""; [ -f "$DEST/server.py" ] || FRESH=1
 SERVICE=""; [ -n "$NO_SERVICE" ] || SERVICE=1
 
-# ---------------------------------------------------------------- 2. Say what will happen, then ask
+# ---------------------------------------------------------------- 2. Say what will happen, then wait
 if [ -n "$FRESH" ]; then
   printf '\n  This will:\n'
   if [ -n "$PY" ]; then
@@ -237,15 +230,16 @@ if [ -n "$FRESH" ]; then
   printf '      before anything is unpacked\n'
   printf '    - put it in %s, with the packages it needs inside that folder\n' "$DEST"
   if [ -n "$SERVICE" ]; then
-    printf '    - start it with your computer and restart it if it stops (you are asked next)\n'
+    printf '    - start it with your computer and restart it if it stops\n'
+    printf '      (to skip this: close this window and run   GREEKSOUP_NO_SERVICE=1 bash install.sh )\n'
   else
     printf '    - start it for this run only (GREEKSOUP_NO_SERVICE is set)\n'
   fi
   printf '    - open http://localhost:%s in your browser\n' "$PORT"
-  if [ -n "$SERVICE" ]; then
-    if ask "Start the desk with your computer too? (no: it runs this time only)" y; then SERVICE=1; else SERVICE=""; fi
+  if can_wait; then
+    printf '\n  Starting in 10 seconds. To stop, close this window (or press Control-C).\n'
+    sleep 10
   fi
-  if can_ask && ! ask "Go ahead?" y; then fail "Stopped. Nothing was changed."; fi
 fi
 
 if [ -z "$PY" ]; then
@@ -314,7 +308,7 @@ fi
 chmod +x *.command *.sh 2>/dev/null || true
 mkdir -p logs
 
-# ---------------------------------------------------------------- 6. Start it, and keep it running if asked
+# ---------------------------------------------------------------- 6. Start it, and keep it running unless skipped
 already() { curl -s -m 2 -o /dev/null "http://localhost:$PORT/api/ping"; }
 if already; then
   say "The desk is already running."
@@ -345,7 +339,7 @@ already || fail "The desk has not answered yet. Give it a minute, then open http
 
 # ---------------------------------------------------------------- 7. Open it
 URL="http://localhost:$PORT"
-if [ -n "$NO_SERVICE" ]; then :   # a test run with nobody at the screen
+if [ ! -t 1 ]; then :   # nobody reading the window (a test machine): no browser
 elif [ "$OS" = "Darwin" ]; then open "$URL" >/dev/null 2>&1 || true
 elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$URL" >/dev/null 2>&1 || true; fi
 

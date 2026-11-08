@@ -7,7 +7,8 @@
 # The quick way, the same file run straight from the site:
 #   irm https://greeksoup.ai/install.ps1 | iex
 #
-# What it does, in order. It prints this list and asks before it changes anything.
+# What it does, in order. It prints this list first and waits 10 seconds, so you can stop it
+# (close the window) before anything changes. It asks you nothing.
 #   1. Finds Python 3.10 or newer, or installs Python 3.12 with winget (Microsoft's package
 #      manager checks the installer's SHA-256 against its own catalogue before running it).
 #   2. Downloads one named version of the desk ($DeskVersion below) from GitHub, or from the
@@ -17,16 +18,17 @@
 #      A download that fails the check is refused and nothing is installed.
 #   3. Puts the desk in %USERPROFILE%\GreekSoup and installs the Python packages it needs
 #      inside that folder (.venv). Nothing else on the PC changes.
-#   4. Asks whether the desk should start when you log on (a task for your user in Task
-#      Scheduler, or a Startup shortcut; no administrator). Say no, or set
-#      $env:GREEKSOUP_NO_SERVICE = "1" first, and it runs this time only.
+#   4. Sets the desk to start when you log on (a task for your user in Task Scheduler, or a
+#      Startup shortcut; no administrator). To skip that, run it as
+#      $env:GREEKSOUP_NO_SERVICE="1"; powershell -ExecutionPolicy Bypass -File install.ps1
+#      and it runs this time only. Either way, the desk's Settings screen switches it later.
 #   5. Starts the desk and opens http://localhost:8765.
 # A fresh Windows machine runs this whole file on every change to the desk; if a line
 # still complains on yours, paste the window's text to your AI agent and ask it to fix it.
 #
 # Knobs (optional, set in the same window first):
 #   $env:GREEKSOUP_HOME = "D:\Desk"   $env:GREEKSOUP_PORT = "8770"   $env:GREEKSOUP_NO_SERVICE = "1"
-#   $env:GREEKSOUP_YES = "1"   no questions: go ahead, and start at logon
+#   $env:GREEKSOUP_YES = "1"   skip the 10-second wait
 $ErrorActionPreference = "Stop"
 # The desk's address on GitHub. A move of the repository changes this one line.
 $Repo = "greeksoup/greeksoup-desk"
@@ -178,17 +180,8 @@ if __name__ == "__main__":
 
 Write-Host "`n  GreekSoup: the one-person equity research desk`n  ------------------------------------------------"
 
-# A question needs a person at the keyboard; a test machine, or GREEKSOUP_YES, takes the default.
-function Can-Ask { return (-not $Yes) -and [Environment]::UserInteractive -and -not [Console]::IsInputRedirected }
-function Ask($Question, $Default) {
-  $ans = ""
-  if (Can-Ask) {
-    $hint = if ($Default -eq "y") { "[Y/n]" } else { "[y/N]" }
-    try { $ans = Read-Host "`n  $Question $hint" } catch { $ans = "" }
-  }
-  if ([string]::IsNullOrWhiteSpace($ans)) { $ans = $Default }
-  return $ans.Trim().ToLower() -in @("y", "yes")
-}
+# The 10-second wait is for a person reading the window; a test machine skips it.
+function Can-Wait { return (-not $Yes) -and [Environment]::UserInteractive -and -not [Console]::IsOutputRedirected }
 
 function Find-Python {
   foreach ($c in @("py -3.13", "py -3.12", "py -3.11", "py -3.10", "python3", "python")) {
@@ -236,11 +229,17 @@ if ($Fresh) {
   Write-Host "    - download GreekSoup $DeskVersion and check it is signed by the GreekSoup team"
   Write-Host "      before anything is unpacked"
   Write-Host "    - put it in $Dest, with the packages it needs inside that folder"
-  if ($Service) { Write-Host "    - start it when you log on (you are asked next; no administrator needed)" }
+  if ($Service) {
+    Write-Host "    - start it when you log on (no administrator needed)"
+    Write-Host "      (to skip this: close this window and run"
+    Write-Host "       `$env:GREEKSOUP_NO_SERVICE=`"1`"; powershell -ExecutionPolicy Bypass -File install.ps1 )"
+  }
   else { Write-Host "    - start it for this run only (GREEKSOUP_NO_SERVICE is set)" }
   Write-Host "    - open http://localhost:$Port in your browser"
-  if ($Service) { $Service = Ask "Start the desk when you log on too? (no: it runs this time only)" "y" }
-  if ((Can-Ask) -and -not (Ask "Go ahead?" "y")) { Write-Host "`n  Stopped. Nothing was changed.`n"; return }
+  if (Can-Wait) {
+    Write-Host "`n  Starting in 10 seconds. To stop, close this window."
+    Start-Sleep -Seconds 10
+  }
 }
 
 if (-not $Py) {
@@ -303,9 +302,8 @@ if (-not (Test-Path ".env")) {
 New-Item -ItemType Directory -Path logs -Force | Out-Null
 
 $Url = "http://localhost:$Port"
-# Without start-at-logon (the reader said no, or GREEKSOUP_NO_SERVICE=1) the desk runs for
-# this run only. GREEKSOUP_NO_SERVICE also skips opening a browser: it is how the desk is
-# tested on a fresh Windows machine that nobody is sitting at.
+# With GREEKSOUP_NO_SERVICE=1 the desk runs for this run only, without the start-at-logon
+# entry. A window nobody is reading (a fresh Windows test machine) gets no browser opened.
 $proc = $null
 if (-not (Up)) {
   if (-not $Service) {
@@ -341,7 +339,7 @@ if (-not (Up)) {
   }
   throw "The desk has not answered yet. Give it a minute, then open $Url . If it stays blank, read $Dest\logs\desk.log or give it to your AI agent."
 }
-if (-not $NoService) { Start-Process $Url }
+if ([Environment]::UserInteractive -and -not [Console]::IsOutputRedirected) { Start-Process $Url }
 if ($Service) {
   Write-Host "`n  Done. The desk is at $Url and it starts when you log on from now on."
   Write-Host "  To switch that off: double-click Stop Desk in the folder, or Settings inside the desk."
