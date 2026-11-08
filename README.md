@@ -41,25 +41,47 @@ Three things are involved, and it helps to know which is which.
 ## What you need
 
 - A computer you leave on while you work. Mac, Windows or Linux.
-- Optional: an AI coding agent (Claude Code, Codex, Gemini CLI, Kimi Code or Grok Build, for example). It can do the install for you, and it is how you change the desk later by describing what you want. If you have none, search "how do I install Claude Code" and follow the two or three steps, or skip it and use the one-line install.
+- Optional: an AI coding agent (Claude Code, Codex, Gemini CLI, Kimi Code or Grok Build, for example). It can do the install for you, and it is how you change the desk later by describing what you want. If you have none, search "how do I install Claude Code" and follow the two or three steps, or skip it and use the installer below.
 - Optional: an account with a broker that lets a program read it, which brokers call an API. The desk connects to Alpaca, Angel One, Charles Schwab, Dhan, Groww, ICICI Direct, Interactive Brokers, Longbridge, Questrade, Saxo Bank, tastytrade, Tradier, Trading 212, Upstox and Zerodha as it comes, read-only, with what each hands out from its own dashboard; any other broker with an API is one file your agent writes from its documentation. Most of them also give the desk live prices for your watchlist through the same connection; where one does not yet (Charles Schwab, Interactive Brokers, Longbridge and Trading 212), the free feed prices it, and Settings says for each what your agent can add. Without one, you keep your holdings by hand on Desk · Book with Yahoo symbols, and the US desk and every intelligence screen still work.
 - Optional, and recommended: a free [Shikshan Nivesh Data](https://shikshannivesh.com/data) key for the ticker page's financials: the full statements, the ratio history, segments, peers, the dividend record by year and the DCF. Sign in at shikshannivesh.com/login, press **Make a key** on the **Data** tab of your account page, and paste it in Settings under **Data provider**; [the steps](https://greeksoup.ai/docs/setup/data-providers/). The free plan's 250 calls a day covers about eighty companies, since the desk spends three calls a company and keeps the answer for twelve hours.
 
-## Install it: one line (about a minute)
+## Install it: download, read, run (about a minute)
 
-On a Mac, press Command and Space together, type `Terminal`, press Enter; a plain window opens. Paste this line into it and press Enter:
+You download the installer, open it to see what it does, then run it. It is a plain text file with every step listed at the top.
 
-```
-curl -fsSL https://greeksoup.ai/install.sh | bash
-```
-
-On Windows, press the Windows key, type `PowerShell`, press Enter, then paste this line and press Enter:
+**On a Mac**, press Command and Space together, type `Terminal`, press Enter; a plain window opens. Paste these one at a time, pressing Enter after each:
 
 ```
-irm https://greeksoup.ai/install.ps1 | iex
+curl -fsSL https://greeksoup.ai/install.sh -o install.sh
 ```
 
-It finds Python on your computer (and installs it if it is missing), downloads the desk into a folder called GreekSoup in your home folder, installs what it needs into that folder and nothing else, sets the desk to start with your computer, starts it, and opens it in your browser. About a minute on a Mac. The Windows line is how readers install it on Windows 11, and a fresh Windows machine installs the desk with it on every change to the code (the `check` workflow); if it complains on yours, paste the window's text to an AI agent. Keys are optional. When you want one, open **Settings**, the last entry in the desk's sidebar, paste it there, and the desk keeps it in a file inside that folder; you never open the file yourself.
+```
+open -e install.sh
+```
+
+```
+bash install.sh
+```
+
+The first line downloads the installer, the second opens it in TextEdit so you can read it, the third runs it. On Linux it is the same, with any text editor for the second line.
+
+**On Windows**, press the Windows key, type `PowerShell`, press Enter, then paste these one at a time:
+
+```
+irm https://greeksoup.ai/install.ps1 -OutFile install.ps1
+```
+
+```
+notepad install.ps1
+```
+
+```
+powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
+Before it changes anything, the installer prints what it will do and asks two questions: whether the desk should start with your computer (press Enter for yes, type `n` for this time only), and whether to go ahead. Then it finds Python (and installs it if it is missing: on a Mac it first checks the file is python.org's, signed by the Python Software Foundation), downloads one named version of the desk and checks it is signed by the GreekSoup team before unpacking anything, the same check every update goes through, and refuses if it is not. It puts the desk in a folder called GreekSoup in your home folder, installs what it needs into that folder and nothing else, starts it, and opens it in your browser. A fresh Windows machine installs the desk this way on every change to the code (the `check` workflow); if it complains on yours, paste the window's text to an AI agent. Keys are optional. When you want one, open **Settings**, the last entry in the desk's sidebar, paste it there, and the desk keeps it in a file inside that folder; you never open the file yourself.
+
+**The quick way**, the same installer run straight from the site without saving it first: `curl -fsSL https://greeksoup.ai/install.sh | bash` on a Mac or Linux, `irm https://greeksoup.ai/install.ps1 | iex` on Windows. It runs the same checks and asks the same questions; the steps above are the ones we recommend, because you see what runs before it runs.
 
 ## Install it with an AI agent instead (about twenty minutes, the agent does the work)
 
