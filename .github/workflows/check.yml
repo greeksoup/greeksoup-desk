@@ -21,6 +21,17 @@ jobs:
       - run: python -m pytest tests -q
       - run: python doctor.py --offline
 
+  install-sh:
+    # the Mac and Linux installer, the way a reader runs it: download the pinned release,
+    # check its signature, install, answer on the door, then the desk's own check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash -n install.sh
+      - run: GREEKSOUP_HOME="$RUNNER_TEMP/desk" GREEKSOUP_PORT=8799 GREEKSOUP_NO_SERVICE=1 bash install.sh
+      - run: test -f "$RUNNER_TEMP/desk/MANIFEST.sig" && curl -fsS http://127.0.0.1:8799/api/ping
+      - run: cd "$RUNNER_TEMP/desk" && .venv/bin/python doctor.py --offline
+
   windows:
     runs-on: windows-latest
     steps:
