@@ -163,6 +163,26 @@ def test_version_and_manifest_agree():
     assert "uninstall.sh" in manifest["files"], "Uninstall Desk.command runs the root uninstall.sh"
 
 
+def test_every_signed_file_is_the_one_the_signature_names():
+    # The update downloads main and refuses it when any file differs from the signed list.
+    # On 2026-11-09 an address swap in twelve signed files went to main without a release,
+    # and every reader who clicked Update got "Not updated". A change to a signed file
+    # ships only inside a release: VERSION line, make_manifest.py, then commit.
+    import hashlib
+    manifest = json.load(open(os.path.join(HERE, "MANIFEST.json"), encoding="utf-8"))
+    drift = []
+    for rel, want in manifest["files"].items():
+        path = os.path.join(HERE, rel)
+        if not os.path.exists(path):
+            drift.append(rel + " (missing)")
+            continue
+        got = hashlib.sha256(open(path, "rb").read().replace(b"\r\n", b"\n")).hexdigest()
+        if got != want:
+            drift.append(rel)
+    assert not drift, ("signed files changed without a release, so readers' updates are refused: "
+                       f"{drift[:8]}; add a VERSION line and run scripts/make_manifest.py")
+
+
 def test_update_unpacks_only_what_the_manifest_lists(tmp_path):
     """The zip carries the website and the installers; the updater leaves them in the zip,
     so an antivirus on the reader's machine never sees an installer on disk."""
