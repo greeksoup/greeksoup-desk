@@ -30,12 +30,11 @@ body::before{content:"";position:fixed;top:0;left:0;bottom:0;width:var(--railw);
   pointer-events:none;background:linear-gradient(180deg,var(--panel) 0%,var(--bg) 90%);
   border-right:1px solid var(--line)}
 html[data-rail="min"] body::before{width:var(--railc)}
-/* Moving between screens: the browser keeps the old screen up until the new one has drawn,
-   then swaps them quickly, instead of showing a blank page in between (Chrome, Edge, Safari). */
-@media (prefers-reduced-motion:no-preference){
-  @view-transition{navigation:auto}
-  ::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}
-}
+/* Moving between screens: the early line in each page keeps it hidden until its first data is
+   in (at most 0.4 s). Chrome, Edge and Comet keep the previous screen showing meanwhile, so no
+   half-built screen is ever painted (9 Nov 2026). A cross-document fade is left off on purpose:
+   it would fade into the hidden screen. */
+html.hold body{visibility:hidden}
 ::selection{background:rgba(237,90,36,.35)}
 .mono{font-family:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-variant-numeric:tabular-nums}

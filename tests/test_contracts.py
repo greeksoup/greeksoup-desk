@@ -2005,4 +2005,8 @@ def test_every_screen_sets_its_theme_before_the_first_paint():
         assert early in (None, line), f"{os.path.basename(path)}: early theme line differs from the others"
         early = line
     css = open(os.path.join(HERE, "web", "assets", "desk.css"), encoding="utf-8").read()
-    assert "body::before{" in css and "@view-transition{navigation:auto}" in css
+    assert "body::before{" in css and "html.hold body{visibility:hidden}" in css
+    # the hold always ends: on the first data, or after 0.4 s whatever happens
+    assert 'd.classList.add("hold")' in early and "setTimeout(show,400)" in early
+    # a fade between documents would capture the hidden screen and fade into a blank one
+    assert "@view-transition" not in css
