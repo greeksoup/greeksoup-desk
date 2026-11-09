@@ -24,6 +24,18 @@ body{background:var(--bg);color:var(--ink);
   -webkit-font-smoothing:antialiased;
   padding-left:var(--railw);transition:padding-left .22s ease,background .25s}
 html[data-rail="min"] body{padding-left:var(--railc)}
+/* The sidebar is drawn by desk.js once the page has loaded; until then this strip, in the
+   sidebar's own colours, holds its place so a screen never flashes half blank (9 Nov 2026). */
+body::before{content:"";position:fixed;top:0;left:0;bottom:0;width:var(--railw);z-index:29;
+  pointer-events:none;background:linear-gradient(180deg,var(--panel) 0%,var(--bg) 90%);
+  border-right:1px solid var(--line)}
+html[data-rail="min"] body::before{width:var(--railc)}
+/* Moving between screens: the browser keeps the old screen up until the new one has drawn,
+   then swaps them quickly, instead of showing a blank page in between (Chrome, Edge, Safari). */
+@media (prefers-reduced-motion:no-preference){
+  @view-transition{navigation:auto}
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}
+}
 ::selection{background:rgba(237,90,36,.35)}
 .mono{font-family:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-variant-numeric:tabular-nums}

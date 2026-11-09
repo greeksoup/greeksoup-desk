@@ -1987,3 +1987,22 @@ def test_updates_are_signed_and_checked(tmp_path):
     except ValueError as exc:
         assert "not signed" in str(exc)
     assert not updater._safe_rel("./.env") and not updater._safe_rel("../x") and updater._safe_rel("web/ticker.html")
+
+
+def test_every_screen_sets_its_theme_before_the_first_paint():
+    # desk.js is deferred, so it runs after the browser has painted once; a screen that waits
+    # for it shows the dark default and no sidebar for a moment before the reader's theme
+    # (the flash reported on 9 Nov 2026). Every screen carries the same early line, ahead of
+    # desk.css, and desk.css holds the sidebar's place until desk.js draws it.
+    import glob
+    early = None
+    for path in sorted(glob.glob(os.path.join(HERE, "web", "*.html"))):
+        html = open(path, encoding="utf-8").read()
+        i = html.find("<script>/* theme and sidebar width before the first paint")
+        j = html.find('<link rel="stylesheet" href="/assets/desk.css">')
+        assert 0 <= i < j, f"{os.path.basename(path)}: the early theme line must come before desk.css"
+        line = html[i:html.index("</script>", i)]
+        assert early in (None, line), f"{os.path.basename(path)}: early theme line differs from the others"
+        early = line
+    css = open(os.path.join(HERE, "web", "assets", "desk.css"), encoding="utf-8").read()
+    assert "body::before{" in css and "@view-transition{navigation:auto}" in css
