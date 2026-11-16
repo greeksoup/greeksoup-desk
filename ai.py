@@ -13,6 +13,7 @@ a key back.
 """
 
 import base64
+import datetime
 import os
 
 import requests
@@ -26,7 +27,7 @@ FORMATS = {
 # model "" = the reader types the name from the provider's model page.
 PROVIDERS = {
     "anthropic":  {"label": "Anthropic", "format": "anthropic", "base_url": "https://api.anthropic.com", "model": "claude-opus-5", "needs_key": True},
-    "openai":     {"label": "OpenAI", "format": "openai", "base_url": "https://api.openai.com/v1", "model": "gpt-5", "needs_key": True},
+    "openai":     {"label": "OpenAI", "format": "openai", "base_url": "https://api.openai.com/v1", "model": "gpt-6.1-sol", "needs_key": True},
     "google":     {"label": "Google (Gemini)", "format": "openai", "base_url": "https://generativelanguage.googleapis.com/v1beta/openai", "model": "gemini-3.8-flash", "needs_key": True},
     "deepseek":   {"label": "DeepSeek", "format": "openai", "base_url": "https://api.deepseek.com/v1", "model": "deepseek-chat", "needs_key": True,
                    "alt": {"format": "anthropic", "base_url": "https://api.deepseek.com/anthropic"}},
@@ -44,6 +45,46 @@ PROVIDERS = {
     "custom":     {"label": "Any other endpoint", "format": "openai", "base_url": "", "model": "", "needs_key": False},
 }
 
+# OpenAI's own shutdown list (developers.openai.com/api/docs/deprecations, read 16 Nov 2026):
+# model -> (shutdown day, the replacement OpenAI names). Settings saves the model field as
+# it stood, so every reader who picked OpenAI before 2026-11-16 has "gpt-5" saved; from
+# the shutdown day the desk sends OpenAI's replacement instead, so the Ask box keeps
+# answering. Only on OpenAI's own address; before that day nothing changes.
+_RETIRED = {}
+for _names, _day, _new in (
+    (("gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o4-mini", "o4-mini-2025-04-16"), "2026-10-23", "gpt-5.6-terra"),
+    (("gpt-4", "gpt-4-0613", "gpt-4-1106-preview", "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4o-2024-05-13"), "2026-10-23", "gpt-5.6-sol"),
+    (("gpt-4.1-nano", "gpt-4.1-nano-2025-04-14"), "2026-10-23", "gpt-5.6-luna"),
+    (("gpt-5", "gpt-5-2025-08-07", "o3", "o3-2025-04-16"), "2026-12-11", "gpt-6.1-sol"),
+    (("gpt-5-mini", "gpt-5-mini-2025-08-07"), "2026-12-11", "gpt-6.1-terra"),
+    (("gpt-5-nano", "gpt-5-nano-2025-08-07"), "2026-12-11", "gpt-6-luna"),
+    (("gpt-4o", "gpt-4o-2024-08-06", "gpt-4o-2024-11-20", "gpt-4o-mini", "gpt-4o-mini-2024-07-18",
+      "gpt-4.1", "gpt-4.1-2025-04-14", "gpt-4.1-mini", "gpt-4.1-mini-2025-04-14"), "2027-01-14", "gpt-6-luna"),
+    (("gpt-5.1", "gpt-5.1-2025-11-13", "gpt-5.3-codex"), "2027-04-01", "gpt-6-sol"),
+    (("gpt-5.4-nano", "gpt-5.4-nano-2026-03-17"), "2027-04-01", "gpt-6-luna"),
+):
+    for _n in _names:
+        _RETIRED[_n] = (_day, _new)
+
+
+def _openai_own(base_url):
+    return "api.openai.com" in (base_url or "").lower()
+
+
+def retirement(model, base_url, today=None):
+    """(shutdown day, replacement, already past) for a model OpenAI is retiring, else None."""
+    hit = _RETIRED.get((model or "").strip().lower()) if _openai_own(base_url) else None
+    if not hit:
+        return None
+    today = today or datetime.date.today().isoformat()
+    return hit[0], hit[1], today >= hit[0]
+
+
+def _live_model(model, base_url, today=None):
+    r = retirement(model, base_url, today)
+    return r[1] if r and r[2] else model
+
+
 _PING = "Reply with the single word: ok"
 
 
@@ -53,12 +94,14 @@ def settings():
     fmt = (os.getenv("AI_FORMAT", "") or "").strip().lower() or preset.get("format", "openai")
     if fmt not in FORMATS:
         fmt = "openai"
+    base_url = (os.getenv("AI_BASE_URL", "") or "").strip() or preset.get("base_url", "")
+    model = (os.getenv("AI_MODEL", "") or "").strip() or preset.get("model", "")
     return {
         "provider": p if p in PROVIDERS else "",
         "format": fmt,
         "key": (os.getenv("AI_API_KEY", "") or "").strip(),
-        "model": (os.getenv("AI_MODEL", "") or "").strip() or preset.get("model", ""),
-        "base_url": (os.getenv("AI_BASE_URL", "") or "").strip() or preset.get("base_url", ""),
+        "model": _live_model(model, base_url),
+        "base_url": base_url,
         "needs_key": preset.get("needs_key", False),
     }
 
@@ -110,7 +153,11 @@ def _openai(s, messages, system=None, max_tokens=None, timeout=60):
         headers["authorization"] = "Bearer " + s["key"]
     msgs = ([{"role": "system", "content": system}] if system else []) + messages
     body = {"model": s["model"], "messages": msgs}
-    if max_tokens:
+    # OpenAI's own models now think before they answer, and its reference says max_tokens
+    # does not work with them (max_completion_tokens counts the thinking too, so a cap
+    # sized for the answer can leave it empty). There the prompt keeps answers short and
+    # no cap is sent; every other endpoint keeps max_tokens.
+    if max_tokens and not _openai_own(s["base_url"]):
         body["max_tokens"] = max_tokens
     return requests.post(s["base_url"].rstrip("/") + "/chat/completions", headers=headers, json=body, timeout=timeout)
 

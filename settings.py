@@ -9,6 +9,7 @@ Rules kept here:
     survives every new version
 """
 
+import datetime
 import json
 import os
 import platform
@@ -130,6 +131,21 @@ def masked(v):
     return "ends in " + v[-4:] if len(v) > 6 else "saved"
 
 
+def _model_note(g):
+    """A plain sentence when the saved OpenAI model is one OpenAI is retiring, else ""."""
+    import ai
+    p = ai.PROVIDERS.get((g("AI_PROVIDER") or "").lower(), {})
+    model = g("AI_MODEL") or p.get("model", "")
+    r = ai.retirement(model, g("AI_BASE_URL") or p.get("base_url", ""))
+    if not r:
+        return ""
+    d = datetime.date.fromisoformat(r[0])
+    day = f"{d.day} {d.strftime('%B %Y')}"
+    if r[2]:
+        return f"OpenAI has retired {model}, so the desk sends {r[1]}, the model OpenAI names in its place. Type {r[1]} above and save to make it yours."
+    return f"OpenAI retires {model} on {day}. From that day the desk sends {r[1]}, the model OpenAI names in its place; type it above and save to move now."
+
+
 def current():
     """What the page shows: which keys exist, never the keys themselves."""
     env = read_env()
@@ -140,7 +156,7 @@ def current():
                  "other_key": masked(g("DATA_API_KEY")), "other_base": g("DATA_BASE_URL"),
                  "other_name": g("DATA_PROVIDER") if provider not in ("", "fmp", "shikshan_nivesh") else ""},
         "ai": {"provider": g("AI_PROVIDER") or "", "format": g("AI_FORMAT") or "", "key": masked(g("AI_API_KEY")),
-               "model": g("AI_MODEL"), "base_url": g("AI_BASE_URL")},
+               "model": g("AI_MODEL"), "base_url": g("AI_BASE_URL"), "model_note": _model_note(g)},
         "edgar_contact": g("EDGAR_CONTACT"),
         "risk_benchmark": g("RISK_BENCHMARK"), "risk_benchmark_label": g("RISK_BENCHMARK_LABEL"),
         "home_market": (g("HOME_MARKET") or "").lower(),

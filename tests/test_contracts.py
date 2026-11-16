@@ -2010,3 +2010,31 @@ def test_every_screen_sets_its_theme_before_the_first_paint():
     assert 'd.classList.add("hold")' in early and "setTimeout(show,400)" in early
     # a fade between documents would capture the hidden screen and fade into a blank one
     assert "@view-transition" not in css
+
+
+def test_a_retired_openai_model_is_swapped_on_its_shutdown_day():
+    """OpenAI shuts gpt-5 on 11 Dec 2026 and names gpt-6.1-sol. Settings saved "gpt-5" for every
+    reader who picked OpenAI before, so from that day the desk sends the replacement; before
+    it, and on any other endpoint, the saved name goes out unchanged."""
+    ai = importlib.import_module("ai")
+    oa = "https://api.openai.com/v1"
+    assert ai.PROVIDERS["openai"]["model"] == "gpt-6.1-sol"
+    assert ai.retirement(ai.PROVIDERS["openai"]["model"], oa) is None, "the starting model is not one being retired"
+    assert ai._live_model("gpt-5", oa, today="2026-12-10") == "gpt-5"
+    assert ai._live_model("gpt-5", oa, today="2026-12-11") == "gpt-6.1-sol"
+    assert ai._live_model("GPT-5-mini", oa, today="2027-01-01") == "gpt-6.1-terra"
+    assert ai._live_model("gpt-5", "https://openrouter.ai/api/v1", today="2027-01-01") == "gpt-5"
+    for day, new in ai._RETIRED.values():
+        assert new not in ai._RETIRED, f"{new} is itself retired; point at OpenAI's current name"
+
+
+def test_openai_gets_no_max_tokens_other_endpoints_keep_it(monkeypatch):
+    """OpenAI's reference: max_tokens does not work with its reasoning models (gpt-5, gpt-6.1-sol)."""
+    ai = importlib.import_module("ai")
+    sent = []
+    monkeypatch.setattr(ai.requests, "post", lambda url, headers, json, timeout: sent.append(json))
+    base = {"key": "k", "model": "m"}
+    ai._openai(dict(base, base_url="https://api.openai.com/v1"), [{"role": "user", "content": "hi"}], max_tokens=1200)
+    ai._openai(dict(base, base_url="https://api.deepseek.com/v1"), [{"role": "user", "content": "hi"}], max_tokens=1200)
+    assert "max_tokens" not in sent[0] and "max_completion_tokens" not in sent[0]
+    assert sent[1]["max_tokens"] == 1200
