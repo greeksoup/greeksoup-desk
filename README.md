@@ -26,7 +26,7 @@ It needs no coding: sixteen screens with your positions, the filings, the 13F an
 
 You do not write any of it. One line pasted into a terminal installs it (below), and an AI coding agent can install it for you instead and change it later when you ask. It is open source under the MIT licence and it updates itself. The edition that walks through every screen and the build is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity); the screenshots there show the author's own copy, and this repository is that desk without the author's positions.
 
-[greeksoup.ai, our stock research platform](https://greeksoup.ai) · [Mirror on GitLab](https://gitlab.com/shikshan-nivesh/greeksoup) · [Docs](https://greeksoup.ai/docs/) · [Install](https://greeksoup.ai/docs/install/) · [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/) · [The screens](https://greeksoup.ai/docs/get-started/the-screens/) · [Security](https://greeksoup.ai/docs/project/security/) · [Releases](https://greeksoup.ai/docs/project/releases/) · [FAQ](https://greeksoup.ai/docs/get-started/faq/) · [Newsletter](https://ai.shikshannivesh.com)
+[greeksoup.ai, our stock research platform](https://greeksoup.ai) · [S-1 Prospectus Terminal, our IPO prospectus reader](https://github.com/greeksoup/s1-prospectus-terminal) · [Mirror on GitLab](https://gitlab.com/shikshan-nivesh/greeksoup) · [Docs](https://greeksoup.ai/docs/) · [Install](https://greeksoup.ai/docs/install/) · [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/) · [The screens](https://greeksoup.ai/docs/get-started/the-screens/) · [Security](https://greeksoup.ai/docs/project/security/) · [Releases](https://greeksoup.ai/docs/project/releases/) · [FAQ](https://greeksoup.ai/docs/get-started/faq/) · [Newsletter](https://ai.shikshannivesh.com)
 
 ## How it works, in plain words
 
@@ -205,6 +205,14 @@ What was added and when, newest first, is on the [releases page](https://greekso
 ## If you also use Obsidian
 
 Optional, and nothing above depends on it. If you keep notes in Obsidian, the desk can appear as a tab inside it: in Obsidian, Settings, Core plugins, switch on **Web Viewer**; copy the note `obsidian/Live Desk.md` from the desk folder into your vault; open that note. The optional `obsidian/desk.css` file, dropped into your vault's `.obsidian/snippets/` folder and enabled under Appearance, lets the note use the full width. Or tell your agent: *put the desk inside my Obsidian vault*.
+
+## Also from us: the S-1 Prospectus Terminal
+
+When a company files to list in the US, its prospectus (the S-1, or the F-1 for a company from outside the US) runs to hundreds of pages. Our second free program reads it and lays it out as one dashboard in your browser: five questions in a fixed order with the price last, the things a careful reader would stop on, the statements as printed, who owns the shares and who holds the votes, and what changed between amendments. Every figure carries the printed page it came from, and code reads the filing with no AI, so it gives the same answer every time and costs nothing to run again. Anthropic, SpaceX, Cerebras and Oura come with it, and you can add any other company that has filed.
+
+<p align="center"><a href="https://github.com/greeksoup/s1-prospectus-terminal"><img src="https://raw.githubusercontent.com/greeksoup/s1-prospectus-terminal/main/assets/screens/overview.png" alt="The S-1 Prospectus Terminal reading Anthropic's amended S-1: five questions, each with its key figure and the printed page it came from" width="100%"></a></p>
+
+[The S-1 Prospectus Terminal on GitHub](https://github.com/greeksoup/s1-prospectus-terminal). One line installs it, the same way as the desk, on a Mac, Windows or Linux.
 
 ## Where to read next
 
