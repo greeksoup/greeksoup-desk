@@ -31,13 +31,12 @@ main{max-width:1420px;margin:0 auto;padding:20px 22px}
   background:rgba(237,90,36,.16);color:var(--accent);letter-spacing:.05em}
 .nm-h .right2{margin-left:auto;font-size:11px;color:var(--muted)}
 .nm-h .rm{background:none;border:0;color:var(--muted);cursor:pointer;font-size:11px;padding:0 4px} .nm-h .rm:hover{color:var(--neg)}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:11px 15px;
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:11px 15px;
   border-bottom:1px solid var(--line)}
 .st .l{font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
 .st .v{font-size:14.5px;font-weight:800;margin-top:2px}
 .st .m{font-size:9px;color:var(--muted)}
-/* the range ladder: put wall … spot … call wall on one scale, with the
-   paid-for expected-move band shaded */
+/* the range ladder: put wall … spot … call wall on one scale */
 .ladder{padding:12px 15px 11px;border-bottom:1px solid var(--line)}
 .ladder .trk{position:relative;height:8px;border-radius:4px;background:var(--panel2)}
 .ladder .band{position:absolute;top:0;bottom:0;border-radius:4px;
@@ -75,68 +74,60 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">What the US options market is positioned for on each of your names, read from CBOE's free
-  15-minute-delayed chains (<span id="win"></span>-day expiry window). <span id="scope">The names are the
+  <div class="sub">What the US options market is positioned for on each of your names, read from the official
+  public record of open interest in US listed options, updated once a day after the close
+  (<span id="win"></span>-day expiry window). <span id="scope">The names are the
   US lines on <a href="/book" style="color:var(--ink2)">Desk · Book</a> and the names on
   <a href="/watch?list=us" style="color:var(--ink2)">Watch · US</a></span>;
-  a name added below goes on Watch · US and its chain is read within a minute. <b style="color:var(--ink2)">Unusual
-  strikes</b> = today's volume at least twice the existing open interest with real premium: positions
-  that did not exist yesterday. <b style="color:var(--ink2)">OI builds</b> compare open interest against
-  the previous daily snapshot on disk, so they appear from a name's second covered day. Describes
-  positioning only; it makes no call.</div>
+  a name added below goes on Watch · US and is read within a minute. <b style="color:var(--ink2)">Biggest
+  positions</b> are the single contracts with the most open interest. <b style="color:var(--ink2)">OI builds</b>
+  compare open interest against the previous daily snapshot on disk, so they appear from a name's second
+  covered day. Describes positioning only; it makes no call.</div>
   <form id="addf" style="display:flex;gap:8px;align-items:center;margin:-6px 0 16px;flex-wrap:wrap">
     <span style="position:relative;display:inline-block"><input id="addc" placeholder="Add a US name or company, like COST" maxlength="12" autocomplete="off" spellcheck="false"
       style="background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font:inherit;font-size:12.5px;width:250px;text-transform:uppercase"></span>
     <button type="submit" style="background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer">Add to the tape</button>
     <span id="addmsg" class="dim" style="font-size:12px"></span>
   </form>
-  <div id="body"><div class="loading">Reading chains… a full sweep takes about a minute.</div></div>
+  <div id="body"><div class="loading">Reading open interest… a full sweep takes about a minute.</div></div>
 </main>
-<footer>PCR = put/call ratio (OI = standing positioning, VOL = today's tape). Walls = the strikes with
-the most open interest in the window; dealer hedging tends to pin near big walls into expiry.
-Expected move = ATM straddle cost on the nearest expiry, the move the market has paid for. Skew =
-5% OTM put IV minus 5% OTM call IV on the first expiry past 20 days; rising skew is downside fear.
-Delayed public data; OI updates overnight at OCC.</footer>
+<footer>Put/call = open interest in puts divided by open interest in calls, across the window. Walls = the
+strikes with the most open interest in the window; dealer hedging tends to pin near big walls into expiry.
+Open interest counts contracts still open at the last close, so it moves once a day.</footer>
 
 <script>
 "use strict";
-const money=v=>v>=1e6?"$"+(v/1e6).toFixed(1)+"M":"$"+Math.round(v/1e3)+"k";
+let WIN=90;
 const kfmt=v=>v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(1)+"k":""+v;
 const strike=s=>s.toLocaleString("en-US",{maximumFractionDigits:2});
 function statHTML(n){
-  const em=n.exp_move, sk=n.skew;
   return `<div class="stats">
-    <div class="st"><div class="l">PCR · OI</div><div class="v mono">${n.pcr_oi==null?"—":n.pcr_oi.toFixed(2)}</div>
-      <div class="m mono">${kfmt(n.put_oi)}P/${kfmt(n.call_oi)}C</div></div>
-    <div class="st"><div class="l">PCR · VOL</div><div class="v mono">${n.pcr_vol==null?"—":n.pcr_vol.toFixed(2)}</div>
-      <div class="m mono">${kfmt(n.put_vol)}P/${kfmt(n.call_vol)}C</div></div>
-    <div class="st"><div class="l">IV30</div><div class="v mono">${n.iv30==null?"—":n.iv30.toFixed(0)+"%"}</div></div>
-    <div class="st"><div class="l">Exp move</div><div class="v mono">${em?"±"+em.pct.toFixed(1)+"%":"—"}</div>
-      <div class="m mono">${em?em.exp.slice(5)+" · "+em.dte+"d":""}</div></div>
-    <div class="st"><div class="l">Skew</div><div class="v mono ${sk&&sk.pts>5?"neg":""}">${sk?(sk.pts>=0?"+":"")+sk.pts.toFixed(1):"—"}</div>
-      <div class="m mono">${sk?sk.put_iv.toFixed(0)+"p/"+sk.call_iv.toFixed(0)+"c":""}</div></div>
+    <div class="st"><div class="l">Put/call · OI</div><div class="v mono">${n.pcr_oi==null?"—":n.pcr_oi.toFixed(2)}</div></div>
+    <div class="st"><div class="l">Puts open</div><div class="v mono">${kfmt(n.put_oi)}</div></div>
+    <div class="st"><div class="l">Calls open</div><div class="v mono">${kfmt(n.call_oi)}</div></div>
+    <div class="st"><div class="l">Expiries</div><div class="v mono">${n.expiries}</div>
+      <div class="m mono">in ${WIN} days</div></div>
   </div>`;
 }
 function ladderHTML(n){
   const pw=n.put_wall&&n.put_wall.strike, cw=n.call_wall&&n.call_wall.strike;
-  const em=n.exp_move, spot=n.spot;
+  const spot=n.spot;
   if(pw==null&&cw==null) return "";
-  const emLo=em?spot*(1-em.pct/100):null, emHi=em?spot*(1+em.pct/100):null;
-  let lo=Math.min(spot, pw??spot, emLo??spot), hi=Math.max(spot, cw??spot, emHi??spot);
-  const pad=(hi-lo)*0.07||spot*0.02; lo-=pad; hi+=pad;
+  const pts=[pw,cw,spot].filter(v=>v!=null);
+  let lo=Math.min(...pts), hi=Math.max(...pts);
+  const pad=(hi-lo)*0.07||hi*0.02; lo-=pad; hi+=pad;
   const X=v=>((v-lo)/(hi-lo)*100).toFixed(1);
   const tot=(n.put_oi||0)+(n.call_oi||0);
   const pShare=tot?(n.put_oi/tot*100):null;
   return `<div class="ladder">
     <div class="trk">
-      ${em?`<div class="band" style="left:${X(emLo)}%;width:${(X(emHi)-X(emLo)).toFixed(1)}%"></div>`:""}
       ${pw!=null?`<span class="wall p" style="left:${X(pw)}%" title="put wall ${strike(pw)} · ${kfmt(n.put_wall.oi)} oi"></span>`:""}
       ${cw!=null?`<span class="wall c" style="left:${X(cw)}%" title="call wall ${strike(cw)} · ${kfmt(n.call_wall.oi)} oi"></span>`:""}
-      <span class="spot" style="left:${X(spot)}%" title="spot ${strike(spot)}"></span>
+      ${spot!=null?`<span class="spot" style="left:${X(spot)}%" title="spot ${strike(spot)}"></span>`:""}
     </div>
     <div class="lbls mono">
       <span class="pw">${pw!=null?"put wall "+strike(pw)+" · "+kfmt(n.put_wall.oi)+" oi":""}</span>
-      <span>spot ${strike(spot)}${em?" · paid-for ±"+em.pct.toFixed(1)+"%":""}</span>
+      <span>${spot!=null?"spot "+strike(spot):""}</span>
       <span class="cw">${cw!=null?"call wall "+strike(cw)+" · "+kfmt(n.call_wall.oi)+" oi":""}</span>
     </div>
     ${pShare!=null?`<div class="oisplit">
@@ -148,13 +139,13 @@ function ladderHTML(n){
 }
 function rowsHTML(rows,kind,vs){
   if(!rows.length) return "";
-  let h=`<div class="sec"><div class="t">${kind==="u"?"Unusual strikes (vol ≥ 2× OI)":"OI builds vs "+vs}</div><table class="rows">`;
+  let h=`<div class="sec"><div class="t">${kind==="u"?"Biggest positions":"OI builds vs "+vs}</div><table class="rows">`;
   for(const r of rows){
     h+=`<tr><td class="mono dim">${r.exp.slice(5)}</td>
       <td><span class="cp ${r.cp}">${r.cp}</span></td>
       <td class="mono r"><b>${strike(r.strike)}</b></td>`+
       (kind==="u"
-       ?`<td class="mono r">${kfmt(r.vol)} vol</td><td class="mono r dim">${kfmt(r.oi)} oi</td><td class="mono r">${money(r.prem)}</td>`
+       ?`<td class="mono r">${kfmt(r.oi)} oi</td><td></td><td></td>`
        :`<td class="mono r pos">+${kfmt(r.d_oi)} oi</td><td class="mono r dim">now ${kfmt(r.oi)}</td><td></td>`)
       +`</tr>`;
   }
@@ -163,32 +154,34 @@ function rowsHTML(rows,kind,vs){
 async function load(){
   const r=await fetch("/api/flow"); const d=await r.json();
   document.getElementById("asof").textContent="as of "+d.ts;
-  document.getElementById("win").textContent=d.window_days;
+  WIN=d.window_days||WIN; document.getElementById("win").textContent=WIN;
   // which names these are, from the desk rather than from a fixed line on the page: the
   // reader may keep them on Desk · Book, on Watch · US, or in a file brought in on Settings
   if(d.scope) document.getElementById("scope").textContent="The names are the ones on this desk: "+d.scope;
   if(!d.names.length){
-    document.getElementById("body").innerHTML='<div class="loading">No chains fetched. CBOE may be unreachable; retry shortly.</div>';
+    document.getElementById("body").innerHTML=d.stopped
+      ?'<div class="loading">The options record refused twenty reads in a row, so the desk has stopped asking for six hours. The screen fills again after that.</div>'
+      :(d.skipped&&d.skipped.length
+        ?'<div class="loading">No open interest read this time. The options record may be unreachable; retry shortly.</div>'
+        :'<div class="loading">No US names on the desk yet. Add one above, or put US names on Desk · Book or Watch · US.</div>');
     return;
   }
   let h=`<div class="grid">`;
   for(const n of d.names){
-    const dp=n.day_pct;
     h+=`<div class="nm ${n.held?"held":""}">
       <div class="nm-h"><span class="sym"><a href="/t?symbol=${n.symbol}">${n.symbol}</a></span>
         ${n.held?'<span class="hd">HELD</span>':`<button class="rm" data-c="${n.symbol}" title="Take ${n.symbol} off Watch · US and this tape">✕</button>`}
-        <span class="px mono">${n.spot.toLocaleString("en-US",{maximumFractionDigits:2})}</span>
-        ${dp==null?"":`<span class="mono ${dp>=0?"pos":"neg"}" style="font-size:12px;font-weight:700">${dp>=0?"+":""}${dp.toFixed(2)}%</span>`}
+        ${n.spot==null?"":`<span class="px mono">${n.spot.toLocaleString("en-US",{maximumFractionDigits:2})}</span>`}
         <span class="right2 mono">${n.builds_vs?"vs "+n.builds_vs:"first snapshot"}</span></div>
       ${statHTML(n)}
       ${ladderHTML(n)}
-      ${rowsHTML(n.unusual,"u")}
+      ${rowsHTML(n.biggest||[],"u")}
       ${n.builds_vs?rowsHTML(n.builds,"b",n.builds_vs):'<div class="sec"><div class="empty">First snapshot today; OI builds appear from tomorrow.</div></div>'}
     </div>`;
   }
   h+="</div>";
   if(d.skipped&&d.skipped.length)
-    h+=`<div class="dim" style="font-size:11px;margin-top:12px">No listed options / no chain served: ${d.skipped.join(", ")}</div>`;
+    h+=`<div class="dim" style="font-size:11px;margin-top:12px">No listed options, or not read this time: ${d.skipped.join(", ")}</div>`;
   document.getElementById("body").innerHTML=h;
   document.querySelectorAll("button.rm").forEach(b=>b.onclick=async()=>{
     const code=b.dataset.c; b.disabled=true;
@@ -203,7 +196,7 @@ document.getElementById("addf").addEventListener("submit",async e=>{
   say(`Adding ${code}…`);
   let r; try{ r=await (await fetch("/api/watch/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json(); }catch(x){ r={ok:false,error:"the desk did not answer"}; }
   if(!r.ok){ say(r.error||("could not add it "+window.NEXT_STEP)); return; }
-  inp.value=""; say(`${code} is on Watch · US; its chain is being read, the card appears here in about a minute.`);
+  inp.value=""; say(`${code} is on Watch · US; its open interest is being read, the card appears here in about a minute.`);
   if(window.deskJournal&&r.journal) deskJournal(r.journal);
   // the tape rebuilds behind the page: look again until the name shows up
   let tries=0; const poll=setInterval(async()=>{ tries++; const d=await (await fetch("/api/flow")).json(); if((d.names||[]).some(n=>n.symbol===code)||(d.skipped||[]).includes(code)||tries>12){ clearInterval(poll); load(); say((d.skipped||[]).includes(code)?`${code} has no listed options, so it stays on Watch · US without a card here.`:""); } },10000);

@@ -1886,7 +1886,7 @@ def test_short_and_flow_read_the_one_universe(tmp_path, monkeypatch):
     monkeypatch.setattr(server.shortint, "build",
                         lambda syms, held, float_lookup: seen.update(short=(syms, held)) or {"names": []})
     monkeypatch.setattr(server.options_us, "build",
-                        lambda syms, held: seen.update(flow=(syms, held)) or {"names": []})
+                        lambda syms, held, **kw: seen.update(flow=(syms, held)) or {"names": []})
     assert server.build_short()["scope"]
     assert server.build_flow()["scope"]
     assert seen["short"] == (["COST", "NVDA"], {"COST"})
@@ -2038,3 +2038,28 @@ def test_openai_gets_no_max_tokens_other_endpoints_keep_it(monkeypatch):
     ai._openai(dict(base, base_url="https://api.deepseek.com/v1"), [{"role": "user", "content": "hi"}], max_tokens=1200)
     assert "max_tokens" not in sent[0] and "max_completion_tokens" not in sent[0]
     assert sent[1]["max_tokens"] == 1200
+
+
+def test_flow_reads_open_interest_and_stops_after_twenty_refusals(monkeypatch, tmp_path):
+    """CBOE closed its free chains on 20 Nov 2026; Flow reads the clearing house's open-interest
+    file instead. Adjusted roots and today's expiry stay out, and a closed door is not hammered."""
+    import options_us
+    from datetime import date
+    text = ("Series Search Results for AAPL\r\n\r\n"
+            "ProductSymbol\tyear\tMonth\tDay\tInteger\tDec\tC/P\tCall\tPut\tPosition Limit\t\r\n"
+            "AAPL  \t\t2026\t11\t20\t100\t000\tC P \t10\t2208\t25000000\r\n"
+            "AAPL  \t\t2026\t12\t18\t250\t500\tC P \t900\t300\t25000000\r\n"
+            "AAPL  \t\t2026\t12\t18\t260\t000\tC   \t1200\t0\t25000000\r\n"
+            "2AAPL \t\t2026\t12\t18\t378\t640\tC   \t100\t0\t25000000\r\n")
+    cs = options_us.parse_series(text, "AAPL", date(2026, 11, 20))
+    assert [(c["strike"], c["cp"], c["oi"]) for c in cs] == [(250.5, "C", 900), (250.5, "P", 300), (260.0, "C", 1200)]
+    m = options_us.analyze("AAPL", cs, None, {}, 255.0)
+    assert m["call_wall"] == {"strike": 260.0, "oi": 1200} and m["pcr_oi"] == 0.14
+    monkeypatch.setattr(options_us, "SNAP_DIR", str(tmp_path))
+    monkeypatch.setattr(options_us, "PAUSE_FILE", str(tmp_path / "_paused_until"))
+    monkeypatch.setattr(options_us.time, "sleep", lambda s: None)
+    calls = []
+    monkeypatch.setattr(options_us, "fetch_chain", lambda s: calls.append(s) or options_us.REFUSED)
+    out = options_us.build([f"S{i}" for i in range(30)], set())
+    assert out["stopped"] and len(calls) == options_us.BREAKER
+    assert options_us.build(["AAPL"], set())["stopped"] and len(calls) == options_us.BREAKER, "paused: no more reads"

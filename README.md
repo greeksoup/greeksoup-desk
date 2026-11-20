@@ -36,7 +36,7 @@ Three things are involved, and it helps to know which is which.
 
 **The agent** is the AI tool you type to. It installs the desk, connects your broker, and changes the desk when you ask for something new. You do not need it open to use the desk day to day.
 
-**The data** comes from three places. Your broker knows what you own. The public record (SEC EDGAR for filings, CBOE for options, FINRA for short interest, FRED for macro, Yahoo for quotes) is free and needs no account. Shikshan Nivesh Data, from the makers of GreekSoup, is the main source for the financials on the ticker page: it reads US companies' filings from the SEC, has a free plan, and fills the full statements, the ratio history, segments, peers, the dividend record by year and the DCF. Street estimates and news come from Yahoo's free feed. If you skip the key, nothing breaks.
+**The data** comes from three places. Your broker knows what you own. The public record (SEC EDGAR for filings, the official record of options open interest, FINRA for short interest, FRED for macro, Yahoo for quotes) is free and needs no account. Shikshan Nivesh Data, from the makers of GreekSoup, is the main source for the financials on the ticker page: it reads US companies' filings from the SEC, has a free plan, and fills the full statements, the ratio history, segments, peers, the dividend record by year and the DCF. Street estimates and news come from Yahoo's free feed. If you skip the key, nothing breaks.
 
 ## What you need
 
@@ -147,7 +147,7 @@ So a reader in the US picks Alpaca, Charles Schwab, Interactive Brokers, Tradier
 - **Macro**: 22 FRED series in groups, the home market's own cards, and an economic calendar for the US and the home market.
 - **Calendar**: earnings dates, ex-dividend dates and filings for your names on month grids, for the US and the home market.
 - **Funds**: 13F tracker straight from SEC EDGAR, top holdings, quarter-over-quarter changes, share of each company owned, plus the 13D/G activist feed.
-- **Flow**: the options tape on every US name from CBOE's free delayed chains: put/call, open-interest walls, expected move, unusual strikes, day-over-day builds.
+- **Flow**: the options tape on every US name, from the official public record of open interest in US listed options: put/call, open-interest walls, the biggest positions, day-over-day builds.
 - **Short**: FINRA short interest and the daily short-volume ratio, kept apart.
 - **Capitol**: Senate and House trading disclosures on your names, plus members you track.
 - **Chain**: your own value-chain maps, receipt-graded and priced live. Describe an industry, a product or a company and your AI drafts the first map, upstream to downstream, for you to keep, change or drop line by line; the maps live in your research vault.

@@ -28,7 +28,7 @@ The desk is built to fetch whatever it can from the free record before it asks f
 | Watch · US, Global | Yahoo quotes, any Yahoo symbol from any exchange (`TALABAT.AE`, `0700.HK`, `ASML.AS`) | Nothing |
 | Ticker page (`/t?symbol=X`) | Chart, quote, profile, ratios, targets, analyst counts, street estimates and news from Yahoo when it is not rate-limiting, insider table from EDGAR | Shikshan Nivesh Data: six years of statements, ratio history, segments, peers, the yearly dividend record, the DCF seeds. (Without it, the free record gives four years of statements and the dividend payments.) |
 | Funds | 13F and 13D/G straight from EDGAR | Nothing |
-| Flow | CBOE's free delayed chains | Nothing |
+| Flow | The official public record of US listed options open interest | Nothing |
 | Short | FINRA's free files | Nothing |
 | Capitol | House disclosures read from the Clerk's public PDFs (the Senate site blocks scripts) | Nothing |
 | Macro | FRED, free, plus the home market file's own cards | Nothing |
@@ -120,7 +120,7 @@ The shipped India broker file reaches its broker through `breeze_session.py`, `c
 - Yahoo Finance, keyless: quotes, candles, and the ticker page basics when there is no feed (`freefeed.py`).
 - Shikshan Nivesh Data (optional, recommended, the main source for financials): the three statements, the ratio history, the segment mix and the dividend per share by year on the ticker page, from SEC filings in one standard layout, and the company list the Peers tab picks from (same SEC industry; the peers' prices and multiples from Yahoo); `data_providers/shikshan_nivesh.py`, three calls a company, cached twelve hours, plus the list once a day (`cache/sn_companies.json`); the Peers tab, only when opened, one call per company in the table, kept a week (`cache/sn_peer_figures.json`), each figure worked out from the company's trailing twelve months and its latest Yahoo close. The DCF tab seeds from its statements. The key (`SN_API_KEY`) is read for nothing else.
 - SEC EDGAR: 13F and 13D/G filings, read directly. Set `EDGAR_CONTACT` in `.env`; the SEC asks for it.
-- CBOE delayed option chains, FINRA short files, FRED, the home market file's public sources (the exchange's filings and results calendar, statistics offices), Yahoo Finance quotes and history: all free, no key.
+- The public record of US listed options open interest, FINRA short files, FRED, the home market file's public sources (the exchange's filings and results calendar, statistics offices), Yahoo Finance quotes and history: all free, no key.
 
 Yahoo's free quotes are near live for US listings and 15 to 20 minutes delayed for most other exchanges. Yahoo's quote endpoints are unofficial and can change; the code degrades to the feed or to the last saved quotes when they do.
 

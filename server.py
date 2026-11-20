@@ -3836,7 +3836,7 @@ def build_activist():
     return activist.build(universe("us")["tag"], desk_lists.effective("funds"))
 
 
-# ---- US options flow (CBOE delayed chains; the options-tape method) ----------
+# ---- US options flow (the clearing house's open interest; the options-tape method) ----
 FLOW_TTL = 3600
 
 
@@ -3845,7 +3845,8 @@ def build_flow():
     lands on disk inside options_us.build, so day-over-day OI builds appear
     from the second day a name is covered."""
     u = universe("us")
-    return options_us.build(u["symbols"], u["held"]) | {"scope": scope_line(u)}
+    spot = lambda s: (fetch_yahoo_quote(s.replace(".", "-")) or {}).get("ltp")  # noqa: E731  (BRK.B is BRK-B there)
+    return options_us.build(u["symbols"], u["held"], spot=spot) | {"scope": scope_line(u)}
 
 
 # ---- short interest + daily short-volume ratio (FINRA, free) -----------------
@@ -4518,7 +4519,7 @@ DESK_MAP = [
     ("/api/results_home", "Watch · Home", "upcoming results dates in the home market", ("results", "board meeting", "quarter")),
     ("/api/calendar", "Calendar", "results, dividend dates and landed filings on every name held or watched", ("calendar", "when", "date", "upcoming", "dividend", "ex-div", "filing", "10-k", "10-q", "8-k", "proxy", "results", "earnings", "event", "next")),
     ("/api/funds", "Funds", "the followed funds' 13F holdings and changes", ("fund", "13f", "hedge", "manager", "holder", "institution", "burry", "berkshire")),
-    ("/api/flow", "Flow", "the options tape on US names: put/call, walls, expected move, unusual strikes", ("option", "put", "call", "strike", "expected move", "flow", "gamma", "open interest")),
+    ("/api/flow", "Flow", "the options tape on US names: open interest by strike, put/call, walls, biggest positions, day-over-day builds", ("option", "put", "call", "strike", "flow", "gamma", "open interest")),
     ("/api/short", "Short", "short interest and daily short volume", ("short", "squeeze", "borrow")),
     ("/api/capitol", "Capitol", "congressional trading disclosures on the names", ("congress", "senate", "house", "capitol", "politician", "pelosi", "ptr")),
     ("/api/macro", "Macro", "the macro cards: rates, inflation, growth, the home market's own", ("macro", "rate", "inflation", "cpi", "fed", "rbi", "gdp", "yield", "bond", "repo", "unemployment", "economy")),
@@ -4658,7 +4659,7 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
                                             /api/results_home     upcoming results in the home market
 /funds       Funds (13F)                    /api/funds      the followed funds' latest 13F holdings
                                             /api/activist   13D/G activist and large-holder filings
-/flow        Flow                           /api/flow       the options tape on US names: put/call, walls, expected move, unusual strikes
+/flow        Flow                           /api/flow       the options tape on US names: open interest, put/call, walls, biggest positions, builds
 /short       Short                          /api/short      short interest
 /capitol     Capitol                        /api/capitol    congressional trading disclosures
 /macro       Macro                          /api/macro      the macro cards;  /api/econcal  the calendar
